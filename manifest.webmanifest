@@ -1,0 +1,16 @@
+{
+  "name": "PetCare 2.0",
+  "short_name": "PetCare",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f6fffb",
+  "theme_color": "#bfeedd",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

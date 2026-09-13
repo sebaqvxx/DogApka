@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#bfeedd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PetCare">
+<meta name="description" content="PetCare 2.0 — iPhone-first opieka nad pupilem">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{mint:{50:'#f1fcf7',100:'#ddf7ec',200:'#bfeedd',400:'#78cfae',500:'#4fb895',700:'#2f8069'},ink:'#202827',cream:'#fff8ea',coral:'#ff806b'},boxShadow:{soft:'0 20px 50px rgba(32,40,39,.10)'}}}}</script>
+<style>
+:root{--safe-top:env(safe-area-inset-top);--safe-bottom:env(safe-area-inset-bottom)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:linear-gradient(145deg,#f6fffb,#f2f8f5 55%,#fffaf1);color:#202827;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,system-ui,sans-serif}
+.glass{background:rgba(255,255,255,.72);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.86)}
+.screen{display:none}.screen.active{display:block;animation:up .22s ease}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+main{padding-bottom:calc(100px + var(--safe-bottom))}
+.bottom{padding-bottom:var(--safe-bottom)}
+button{touch-action:manipulation}
+input,select,textarea{font:inherit}
+.toast{opacity:0;transform:translate(-50%,15px);transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div id="app" class="max-w-xl mx-auto min-h-screen">
+<header class="sticky top-0 z-40 px-4 pt-[calc(10px+var(--safe-top))] pb-3">
+ <div class="glass rounded-[26px] px-4 py-3 flex justify-between items-center shadow-soft">
+  <button onclick="showPetMenu()" class="flex items-center gap-3 text-left">
+   <div id="avatar" class="w-11 h-11 rounded-2xl bg-mint-200 grid place-items-center text-2xl">🐶</div>
+   <div><div class="text-[10px] tracking-[.18em] uppercase text-ink/40 font-bold">PetCare 2.0</div><div id="petName" class="font-black text-lg">Luna⌄</div></div>
+  </button>
+  <button onclick="openSheet('settings')" class="w-11 h-11 rounded-2xl bg-white/70 grid place-items-center">⚙️</button>
+ </div>
+</header>
+
+<main class="px-4">
+<section id="home" class="screen active">
+ <div class="flex justify-between items-end mt-2 mb-4"><div><p id="today" class="text-sm text-ink/45"></p><h1 class="text-3xl font-black">Dzień dobry 👋</h1></div><div class="text-right"><div class="text-2xl">☀️</div><b>18°</b></div></div>
+ <div class="glass rounded-[30px] p-5 shadow-soft">
+  <div class="flex justify-between"><div><p class="text-sm text-ink/45">Stan Luny</p><h2 class="text-2xl font-black mt-1">Wszystko dobrze</h2><p class="text-sm text-mint-700 mt-1">● zdrowa rutyna</p></div><div class="w-14 h-14 rounded-full bg-mint-100 grid place-items-center text-2xl">💚</div></div>
+  <div class="grid grid-cols-3 gap-2 mt-5">
+   <div class="rounded-2xl bg-mint-50 p-3"><span>💧</span><small class="block text-ink/45 mt-1">Woda</small><b>72%</b></div>
+   <div class="rounded-2xl bg-cream p-3"><span>🍽️</span><small class="block text-ink/45 mt-1">Posiłki</small><b id="mealCount">1/3</b></div>
+   <div class="rounded-2xl bg-white p-3"><span>🐾</span><small class="block text-ink/45 mt-1">Ruch</small><b id="km">4.2 km</b></div>
+  </div>
+ </div>
+ <div class="mt-4 grid grid-cols-2 gap-3">
+  <button onclick="startWalk()" class="glass rounded-[25px] p-4 text-left shadow-soft"><span class="text-2xl">📍</span><b class="block mt-2">Spacer</b><small class="text-ink/45">18°C · 35–50 min</small></button>
+  <button onclick="openSheet('sos')" class="glass rounded-[25px] p-4 text-left shadow-soft"><span class="text-2xl">🚨</span><b class="block mt-2">SOS</b><small class="text-ink/45">Karta ratunkowa</small></button>
+ </div>
+ <div class="mt-4 glass rounded-[28px] p-5 shadow-soft"><div class="flex justify-between"><h3 class="font-black text-lg">Nastrój & energia</h3><span class="text-xs text-ink/40">dzisiaj</span></div><div id="moods" class="grid grid-cols-5 gap-2 mt-4"></div><p id="mood" class="text-sm text-ink/45 mt-3">Wybierz samopoczucie.</p></div>
+ <div class="mt-4 glass rounded-[28px] p-5 shadow-soft"><div class="flex justify-between"><h3 class="font-black text-lg">Dzisiaj</h3><button onclick="go('care')" class="text-sm text-mint-700 font-bold">więcej</button></div><div id="timeline" class="mt-3 space-y-2"></div></div>
+ <div class="mt-4 rounded-[28px] bg-ink text-white p-5 shadow-soft"><div class="flex justify-between"><div><p class="text-white/45 text-sm">Ważne</p><h3 class="text-xl font-black mt-1">Szczepienie za 12 dni</h3></div><span class="text-2xl">💉</span></div><button onclick="go('health')" class="mt-4 w-full py-3 rounded-2xl bg-white/10 font-bold">Otwórz zdrowie</button></div>
+</section>
+
+<section id="care" class="screen">
+ <div class="mt-2 mb-5"><p class="text-sm text-ink/45">Codzienna rutyna</p><h1 class="text-3xl font-black">Opieka</h1></div>
+ <div class="glass rounded-[30px] p-5 shadow-soft"><div class="flex justify-between"><h2 class="text-xl font-black">Posiłki</h2><button onclick="openSheet('meal')" class="bg-ink text-white rounded-xl px-3 py-2 text-sm font-bold">＋</button></div><div id="meals" class="mt-4 space-y-2"></div></div>
+ <div class="grid grid-cols-2 gap-3 mt-4">
+  <button onclick="quick('💧 Woda')" class="glass rounded-[25px] p-4 text-left"><span class="text-2xl">💧</span><b class="block mt-2">Woda</b><small class="text-ink/45">szybki wpis</small></button>
+  <button onclick="openSheet('toilet')" class="glass rounded-[25px] p-4 text-left"><span class="text-2xl">💩</span><b class="block mt-2">Toaleta</b><small class="text-ink/45">mocz / stolec</small></button>
+ </div>
+ <div class="mt-4 glass rounded-[30px] p-5 shadow-soft"><div class="flex justify-between"><h2 class="text-xl font-black">Wydatki</h2><button onclick="openSheet('expense')" class="text-mint-700 font-bold">＋ dodaj</button></div><div class="flex items-end gap-2 mt-3"><b id="total" class="text-4xl">842 zł</b><small class="text-ink/40 mb-1">/ 1200 zł</small></div><div class="h-3 bg-white rounded-full mt-3 overflow-hidden"><div id="bar" class="h-full bg-mint-500 rounded-full" style="width:70%"></div></div><div id="expenses" class="mt-4 space-y-2"></div></div>
+ <div class="mt-4 glass rounded-[30px] p-5 shadow-soft"><div class="flex justify-between"><h2 class="text-xl font-black">Pakowanie</h2><span id="pack" class="text-sm text-ink/45"></span></div><div id="packing" class="grid grid-cols-2 gap-2 mt-4"></div></div>
+</section>
+
+<section id="health" class="screen">
+ <div class="flex justify-between items-end mt-2 mb-5"><div><p class="text-sm text-ink/45">Profil medyczny</p><h1 class="text-3xl font-black">Zdrowie</h1></div><button onclick="openSheet('sos')" class="bg-coral text-white px-4 py-3 rounded-2xl font-black">SOS</button></div>
+ <div class="grid grid-cols-2 gap-3">
+  <div class="glass rounded-[25px] p-4 shadow-soft"><small class="text-ink/45">Waga</small><div class="mt-1"><b id="weight" class="text-3xl">18.4</b> kg</div><button onclick="openSheet('weight')" class="mt-3 text-sm font-bold">＋ pomiar</button></div>
+  <div class="glass rounded-[25px] p-4 shadow-soft"><small class="text-ink/45">Oddechy</small><div class="mt-1"><b class="text-3xl">22</b>/min</div><button onclick="quick('🫀 Cardio Check zapisany')" class="mt-3 text-sm font-bold">＋ pomiar</button></div>
+ </div>
+ <div class="mt-4 glass rounded-[30px] p-5 shadow-soft"><div class="flex justify-between"><h2 class="text-xl font-black">Historia</h2><button onclick="openSheet('health')" class="text-mint-700 font-bold">＋ wpis</button></div><div id="health" class="mt-4 space-y-2"></div></div>
+ <div class="mt-4 glass rounded-[30px] p-5 shadow-soft"><h2 class="text-xl font-black">Alergie</h2><div class="flex flex-wrap gap-2 mt-3"><span class="px-3 py-2 rounded-full bg-cream text-sm">🌾 kurczak</span><span class="px-3 py-2 rounded-full bg-cream text-sm">🌿 trawy</span></div><button onclick="openSheet('allergy')" class="mt-3 text-sm font-bold">＋ dodaj alergię</button></div>
+ <div class="mt-4 rounded-[30px] bg-ink text-white p-5 shadow-soft"><h2 class="text-xl font-black">Karta Ratunkowa</h2><p class="text-white/50 text-sm mt-1">QR z podstawowymi informacjami dla znalazcy.</p><div class="grid grid-cols-2 gap-2 mt-4"><button onclick="makeQR()" class="bg-white/10 rounded-2xl py-3 font-bold">▦ QR</button><button onclick="openSheet('sos')" class="bg-coral rounded-2xl py-3 font-bold">🚨 SOS</button></div></div>
+</section>
+
+<section id="walks" class="screen">
+ <div class="mt-2 mb-5"><p class="text-sm text-ink/45">GPS i aktywność</p><h1 class="text-3xl font-black">Spacery</h1></div>
+ <div class="glass rounded-[30px] p-5 shadow-soft"><div class="grid grid-cols-3 gap-2"><div class="bg-mint-50 rounded-2xl p-3"><small>Dziś</small><b class="block text-2xl mt-1" id="walkToday">4.2</b><small>km</small></div><div class="bg-white rounded-2xl p-3"><small>Czas</small><b class="block text-2xl mt-1">57</b><small>min</small></div><div class="bg-cream rounded-2xl p-3"><small>Trasy</small><b class="block text-2xl mt-1">3</b><small>dziś</small></div></div>
+  <div class="mt-4 bg-ink rounded-[26px] h-56 relative overflow-hidden"><div class="absolute inset-0 opacity-20" style="background-image:linear-gradient(30deg,#fff 1px,transparent 1px),linear-gradient(120deg,#fff 1px,transparent 1px);background-size:35px 35px"></div><div class="absolute left-8 top-10 text-2xl">📍</div><div class="absolute right-10 bottom-12 text-3xl">🐾</div><div id="gpsStatus" class="absolute bottom-3 left-3 right-3 bg-white/10 backdrop-blur text-white rounded-2xl p-3 text-sm">GPS gotowy</div></div>
+  <div class="grid grid-cols-2 gap-2 mt-4"><button onclick="startWalk()" class="bg-mint-500 text-white rounded-2xl py-4 font-black">▶ Start GPS</button><button onclick="openSheet('walk')" class="bg-white rounded-2xl py-4 font-bold">＋ Ręcznie</button></div></div>
+ <div class="mt-4 glass rounded-[30px] p-5 shadow-soft"><h2 class="text-xl font-black">Historia</h2><div id="walksList" class="mt-3 space-y-2"></div></div>
+</section>
+
+<section id="sitter" class="screen">
+ <div class="mt-2 mb-5"><p class="text-sm text-ink/45">Udostępnianie</p><h1 class="text-3xl font-black">Pet-Sitter</h1></div>
+ <div class="glass rounded-[30px] p-5 shadow-soft"><div class="w-16 h-16 rounded-3xl bg-mint-200 grid place-items-center text-3xl">🐾</div><h2 class="text-3xl font-black mt-4">Instrukcja Luny</h2><p class="text-ink/55 mt-2">Jedzenie, spacery, leki, alergie, kontakty i sytuacje awaryjne.</p><div class="grid grid-cols-2 gap-2 mt-5"><button onclick="share()" class="bg-ink text-white rounded-2xl py-3 font-bold">↗ Udostępnij</button><button onclick="makeQR()" class="bg-white rounded-2xl py-3 font-bold">▦ QR</button></div></div>
+ <div class="mt-4 glass rounded-[30px] p-5 shadow-soft"><h2 class="text-xl font-black">Podgląd</h2><div class="mt-4 space-y-3 text-sm"><div class="flex justify-between"><span>🍽️ Posiłki</span><b>07:30 · 18:30</b></div><div class="flex justify-between"><span>🐾 Spacery</span><b>3 × dziennie</b></div><div class="flex justify-between"><span>💊 Leki</span><b>tylko wg instrukcji</b></div><div class="flex justify-between"><span>🚨 SOS</span><b>+48 600 000 000</b></div></div></div>
+</section>
+</main>
+
+<button onclick="openSheet('quick')" class="fixed z-50 left-1/2 -translate-x-1/2 bottom-[73px] h-16 w-16 rounded-full bg-ink text-white text-3xl shadow-soft border-4 border-white">+</button>
+<nav class="fixed z-40 bottom-0 left-0 right-0 bottom glass bottom"><div class="max-w-xl mx-auto grid grid-cols-5 items-center px-2 pt-2 pb-2">
+ <button data-go="home" onclick="go('home')" class="n py-2 rounded-2xl text-xs font-bold">⌂<small class="block">Start</small></button>
+ <button data-go="care" onclick="go('care')" class="n py-2 rounded-2xl text-xs font-bold">🥣<small class="block">Opieka</small></button><div></div>
+ <button data-go="health" onclick="go('health')" class="n py-2 rounded-2xl text-xs font-bold">♡<small class="block">Zdrowie</small></button>
+ <button data-go="walks" onclick="go('walks')" class="n py-2 rounded-2xl text-xs font-bold">🐾<small class="block">Ruch</small></button>
+</div></nav>
+
+<div id="sheet" class="hidden fixed inset-0 z-[70] bg-ink/30 backdrop-blur-sm flex items-end justify-center"><div id="sheetBody" class="w-full max-w-xl bg-[#f7fffb] rounded-t-[32px] p-5 pb-[calc(22px+var(--safe-bottom))] max-h-[90vh] overflow-auto"></div></div>
+<div id="toast" class="toast fixed z-[80] bottom-24 left-1/2 bg-ink text-white rounded-2xl px-4 py-3 text-sm font-bold shadow-soft"></div>
+<script>
+const K='petcare_iphone_v2';
+const D={pet:{name:'Luna',emoji:'🐶'},mood:'😊',meals:[{time:'07:30',name:'Śniadanie',info:'120 g karmy',done:true},{time:'13:00',name:'Przekąska',info:'marchewka / gryzak',done:false},{time:'18:30',name:'Kolacja',info:'120 g karmy',done:false}],expenses:[['Karma','Karma premium',189],['Weterynarz','Kontrola',250],['Akcesoria','Szelki',129],['Leki','Preparat',274]],packing:['Karma','Miski','Smycz + szelki','Leki','Książeczka','Zabawka','Worki','Ręcznik'],packed:[],health:[['💉','Wścieklizna','12.09.2025','ważne do 12.09.2026',1],['💉','Choroby zakaźne','08.04.2026','komplet',0],['💊','Odrobaczanie','28.08.2026','następne za 2 miesiące',0],['💊','Lek doraźny','10.09.2026','pozostały 4 dawki',1]],weight:18.4,walks:[['Dzisiaj','Park','2.1 km','28 min'],['Dzisiaj','Poranny','1.4 km','18 min'],['Wczoraj','Las','3.7 km','51 min']]};
+let s={...D,...JSON.parse(localStorage.getItem(K)||'{}')};function save(){localStorage.setItem(K,JSON.stringify(s))}
+function toast(x){let t=document.getElementById('toast');t.textContent=x;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+function go(id){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.n').forEach(x=>x.classList.toggle('bg-mint-100',x.dataset.go===id));scrollTo({top:0,behavior:'smooth'})}
+function render(){document.getElementById('petName').textContent=s.pet.name+'⌄';document.getElementById('avatar').textContent=s.pet.emoji;document.getElementById('weight').textContent=s.weight;document.getElementById('today').textContent=new Date().toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});let done=s.meals.filter(x=>x.done).length;document.getElementById('mealCount').textContent=done+'/'+s.meals.length;
+ let m=[['😴','Spokojny'],['🙂','Dobry'],['😊','Wesoły'],['🤩','Energia'],['😟','Niespokojny']];document.getElementById('moods').innerHTML=m.map(x=>`<button onclick="mood('${x[0]}','${x[1]}')" class="rounded-2xl p-3 text-2xl ${s.mood===x[0]?'bg-mint-200 ring-2 ring-mint-500':'bg-white'}">${x[0]}</button>`).join('');
+ document.getElementById('mood').textContent=s.mood?'Dziś: '+(m.find(x=>x[0]===s.mood)||['',''])[1]+'.':'Wybierz samopoczucie.';
+ document.getElementById('meals').innerHTML=s.meals.map((m,i)=>`<button onclick="meal(${i})" class="w-full flex gap-3 items-center p-4 rounded-2xl ${m.done?'bg-mint-100':'bg-white'} text-left"><b class="w-12">${m.time}</b><span class="flex-1"><b>${m.name}</b><small class="block text-ink/45">${m.info}</small></span><span>${m.done?'✓':'○'}</span></button>`).join('');
+ document.getElementById('timeline').innerHTML=s.meals.slice(0,3).map(m=>`<div class="flex items-center gap-3 bg-white rounded-2xl p-3"><b>${m.time}</b><span class="flex-1">${m.name}</span><span>${m.done?'✓':'○'}</span></div>`).join('');
+ let total=s.expenses.reduce((a,x)=>a+Number(x[2]),0);document.getElementById('total').textContent=total+' zł';document.getElementById('bar').style.width=Math.min(100,total/1200*100)+'%';document.getElementById('expenses').innerHTML=s.expenses.map(x=>`<div class="bg-white rounded-2xl p-3 flex justify-between"><span><small class="block text-ink/40">${x[0]}</small><b>${x[1]}</b></span><b>${x[2]} zł</b></div>`).join('');
+ document.getElementById('packing').innerHTML=s.packing.map((x,i)=>`<button onclick="pack(${i})" class="bg-white rounded-2xl p-3 text-left flex gap-2 items-center"><span class="w-7 h-7 rounded-lg grid place-items-center ${s.packed.includes(i)?'bg-mint-500 text-white':'bg-ink/5'}">${s.packed.includes(i)?'✓':''}</span>${x}</button>`).join('');document.getElementById('pack').textContent=s.packed.length+'/'+s.packing.length;
+ document.getElementById('health').innerHTML=s.health.map(x=>`<div class="p-4 rounded-2xl ${x[4]?'bg-cream':'bg-white'} flex gap-3"><span class="text-xl">${x[0]}</span><span class="flex-1"><b>${x[1]}</b><small class="block text-ink/45 mt-1">${x[2]} · ${x[3]}</small></span><span>${x[4]?'!':'✓'}</span></div>`).join('');
+ document.getElementById('walksList').innerHTML=s.walks.map(x=>`<div class="bg-white rounded-2xl p-3 flex gap-3 items-center"><span>🐾</span><span class="flex-1"><b>${x[1]}</b><small class="block text-ink/45">${x[0]}</small></span><b>${x[2]}</b><small>${x[3]}</small></div>`).join('');save();go('home')}
+function mood(e,t){s.mood=e;save();render();toast('Nastrój zapisany')}
+function meal(i){s.meals[i].done=!s.meals[i].done;save();render();toast('Posiłek zaktualizowany')}
+function pack(i){s.packed=s.packed.includes(i)?s.packed.filter(x=>x!==i):[...s.packed,i];save();render();go('care')}
+function quick(x){toast(x+' · zapisano')}
+function showPetMenu(){openSheet('profile')}
+function closeSheet(){document.getElementById('sheet').classList.add('hidden')}
+function openSheet(type){
+let b=document.getElementById('sheetBody'),html=`<div class="flex justify-between items-center mb-5"><h2 class="text-2xl font-black">PetCare</h2><button onclick="closeSheet()" class="w-10 h-10 rounded-xl bg-white">×</button></div>`;
+if(type==='quick') html+=`<h3 class="font-black text-xl">Szybka akcja</h3><div class="grid grid-cols-2 gap-3 mt-4">${[['🍽️','Posiłek','meal'],['💧','Woda','water'],['💩','Toaleta','toilet'],['🐾','Spacer','walk'],['💊','Lek','health'],['😊','Nastrój','mood']].map(x=>`<button onclick="${x[2]==='water'?'quick(\\'💧 Woda zapisano\\');closeSheet()':`openSheet('${x[2]}')`}" class="bg-white rounded-2xl p-4 text-left"><span class="text-2xl">${x[0]}</span><b class="block mt-2">${x[1]}</b></button>`).join('')}</div>`;
+else if(type==='meal') html+=`<h3 class="font-black text-xl">Dodaj posiłek</h3><input id="a" type="time" value="20:00" class="w-full mt-4 p-4 rounded-2xl bg-white"><input id="b" value="Kolacja" class="w-full mt-2 p-4 rounded-2xl bg-white"><input id="c" value="120 g karmy" class="w-full mt-2 p-4 rounded-2xl bg-white"><button onclick="addMeal()" class="w-full mt-4 py-4 bg-ink text-white rounded-2xl font-bold">Zapisz</button>`;
+else if(type==='expense') html+=`<h3 class="font-black text-xl">Wydatek</h3><input id="a" placeholder="Nazwa" class="w-full mt-4 p-4 rounded-2xl bg-white"><input id="b" type="number" placeholder="Kwota zł" class="w-full mt-2 p-4 rounded-2xl bg-white"><select id="c" class="w-full mt-2 p-4 rounded-2xl bg-white"><option>Karma</option><option>Weterynarz</option><option>Akcesoria</option><option>Leki</option></select><button onclick="addExpense()" class="w-full mt-4 py-4 bg-ink text-white rounded-2xl font-bold">Zapisz</button>`;
+else if(type==='weight') html+=`<h3 class="font-black text-xl">Nowa waga</h3><input id="a" type="number" step=".1" value="${s.weight}" class="w-full mt-4 p-4 rounded-2xl bg-white text-2xl font-bold"><button onclick="s.weight=Number(a.value);save();closeSheet();render();toast('Waga zapisana')" class="w-full mt-4 py-4 bg-ink text-white rounded-2xl font-bold">Zapisz</button>`;
+else if(type==='health') html+=`<h3 class="font-black text-xl">Wpis medyczny</h3><input id="a" placeholder="Nazwa" class="w-full mt-4 p-4 rounded-2xl bg-white"><input id="b" type="date" class="w-full mt-2 p-4 rounded-2xl bg-white"><textarea id="c" placeholder="Notatka" class="w-full mt-2 p-4 rounded-2xl bg-white h-24"></textarea><button onclick="addHealth()" class="w-full mt-4 py-4 bg-ink text-white rounded-2xl font-bold">Zapisz</button>`;
+else if(type==='walk') html+=`<h3 class="font-black text-xl">Spacer ręczny</h3><input id="a" placeholder="Trasa" class="w-full mt-4 p-4 rounded-2xl bg-white"><input id="b" type="number" step=".1" placeholder="km" class="w-full mt-2 p-4 rounded-2xl bg-white"><input id="c" placeholder="np. 35 min" class="w-full mt-2 p-4 rounded-2xl bg-white"><button onclick="addWalk()" class="w-full mt-4 py-4 bg-ink text-white rounded-2xl font-bold">Zapisz</button>`;
+else if(type==='toilet') html+=`<h3 class="font-black text-xl">Toaleta</h3><select class="w-full mt-4 p-4 rounded-2xl bg-white"><option>💧 Mocz — prawidłowy</option><option>💧 Mocz — nieprawidłowy</option><option>💩 Stolec — prawidłowy</option><option>💩 Stolec — nieprawidłowy</option></select><textarea placeholder="Notatka (opcjonalnie)" class="w-full mt-2 p-4 rounded-2xl bg-white h-24"></textarea><button onclick="closeSheet();toast('Obserwacja zapisana')" class="w-full mt-4 py-4 bg-ink text-white rounded-2xl font-bold">Zapisz</button>`;
+else if(type==='allergy') html+=`<h3 class="font-black text-xl">Dodaj alergię</h3><input id="a" placeholder="Substancja" class="w-full mt-4 p-4 rounded-2xl bg-white"><button onclick="closeSheet();toast('Alergia zapisana')" class="w-full mt-4 py-4 bg-ink text-white rounded-2xl font-bold">Zapisz</button>`;
+else if(type==='profile') html+=`<h3 class="font-black text-xl">Profil pupila</h3><input id="a" value="${s.pet.name}" class="w-full mt-4 p-4 rounded-2xl bg-white"><input id="b" value="${s.pet.emoji}" class="w-full mt-2 p-4 rounded-2xl bg-white text-2xl"><button onclick="s.pet.name=a.value;s.pet.emoji=b.value;save();closeSheet();render();toast('Profil zapisany')" class="w-full mt-4 py-4 bg-ink text-white rounded-2xl font-bold">Zapisz</button>`;
+else if(type==='settings') html+=`<h3 class="font-black text-xl">Ustawienia</h3><button onclick="exportData()" class="w-full mt-4 p-4 rounded-2xl bg-white text-left font-bold">📤 Eksportuj JSON</button><label class="block mt-2 p-4 rounded-2xl bg-white font-bold">📥 Import JSON<input type="file" accept="application/json" onchange="importData(event)" class="block mt-2 text-sm"></label><button onclick="closeSheet();toast('Dane są przechowywane lokalnie na tym urządzeniu')" class="w-full mt-2 p-4 rounded-2xl bg-mint-100 text-left font-bold">🔒 Prywatność lokalna</button>`;
+else if(type==='sos') html+=`<h3 class="font-black text-2xl">🚨 Karta Ratunkowa</h3><div class="mt-4 rounded-2xl bg-coral/10 p-4"><b>Kontakt awaryjny</b><p class="text-sm mt-1">Właściciel · +48 600 000 000</p></div><a href="tel:+48600000000" class="block mt-3 p-4 rounded-2xl bg-white font-black text-center">📞 Zadzwoń do właściciela</a><a href="tel:+48220000000" class="block mt-2 p-4 rounded-2xl bg-white font-black text-center">🩺 Zadzwoń do weterynarza</a><button onclick="makeQR()" class="w-full mt-2 p-4 rounded-2xl bg-ink text-white font-bold">▦ QR karty</button>`;
+document.getElementById('sheetBody').innerHTML=html;document.getElementById('sheet').classList.remove('hidden')}
+function addMeal(){s.meals.push({time:a.value,name:b.value,info:c.value,done:false});save();closeSheet();render();toast('Posiłek dodany')}
+function addExpense(){s.expenses.push([c.value,a.value,Number(b.value||0)]);save();closeSheet();render();toast('Wydatek dodany')}
+function addHealth(){s.health.unshift(['📋',a.value,b.value||'dzisiaj',c.value||'',0]);save();closeSheet();render();toast('Wpis medyczny dodany')}
+function addWalk(){s.walks.unshift(['Dzisiaj',a.value||'Spacer',(Number(b.value||0)).toFixed(1)+' km',c.value||'—']);save();closeSheet();render();toast('Spacer zapisany')}
+function startWalk(){if(!navigator.geolocation){toast('GPS nie jest dostępny w tej przeglądarce');return}document.getElementById('gpsStatus').textContent='📍 Pobieranie lokalizacji…';navigator.geolocation.getCurrentPosition(p=>{document.getElementById('gpsStatus').textContent=`📍 GPS aktywny · dokładność ~${Math.round(p.coords.accuracy)} m`;toast('GPS uruchomiony')},()=>{document.getElementById('gpsStatus').textContent='⚠️ Brak zgody na lokalizację';toast('Zezwól Safari na lokalizację')},{enableHighAccuracy:true,timeout:10000})}
+function makeQR(){const data=`PETCARE|${s.pet.name}|alergie: kurczak,trawy|SOS:+48600000000`;location.href='https://quickchart.io/qr?text='+encodeURIComponent(data)+'&size=260';}
+async function share(){let text=`Instrukcja opieki nad ${s.pet.name}: posiłki 07:30 i 18:30, 3 spacery dziennie. SOS +48 600 000 000.`;if(navigator.share){try{await navigator.share({title:'PetCare — instrukcja',text})}catch(e){}}else{await navigator.clipboard?.writeText(text);toast('Instrukcja skopiowana')}}
+function exportData(){let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='petcare-backup.json';a.click();URL.revokeObjectURL(a.href);toast('Eksport gotowy')}
+function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{s=JSON.parse(r.result);save();closeSheet();render();toast('Import zakończony')}catch(x){toast('Nieprawidłowy JSON')}};r.readAsText(f)}
+document.getElementById('sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet()});
+render();
+</script>
+</body></html>
